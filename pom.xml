@@ -116,10 +116,10 @@
                                         <arg>-I${java.home}/../include</arg>
                                         <arg>-I${java.home}/../include/darwin</arg>
                                         <arg>-I${project.build.directory}/nar/javah-include</arg>
-                                        <arg>-o${project.build.directory}/libjti_field_modify.dylib</arg>
+                                        <arg>-o${project.build.directory}/libjti_field_modify_to_java.dylib</arg>
                                         <arg>-lpthread</arg>
                                         <arg>-dynamiclib</arg>
-                                        <arg>${project.basedir}/src/main/c/jti_field_modify.c</arg>
+                                        <arg>${project.basedir}/src/main/c/jti_field_modify_to_java.c</arg>
                                     </arguments>
                                 </configuration>
                             </execution>
