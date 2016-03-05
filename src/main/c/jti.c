@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "jvmti.h"
+#include <stdarg.h>
 
 
 jvmtiEnv *globalJVMTIInterface;
@@ -31,7 +32,8 @@ vmInit(jvmtiEnv * jvmti_env, JNIEnv * jni_env, jthread thread)
     }
   printf("C:\tMethod found\n");
 
-  (*jni_env)->CallStaticVoidMethodV(jni_env, callbackClass, callbackMethodID, NULL);
+  va_list empty_va_list;
+  (*jni_env)->CallStaticVoidMethod(jni_env, callbackClass, callbackMethodID);
 
   printf("C:\tVMInit, callback Java method returned successfully\n");
 

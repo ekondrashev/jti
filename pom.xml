@@ -75,7 +75,7 @@
             <plugin>
                 <groupId>com.github.maven-nar</groupId>
                 <artifactId>nar-maven-plugin</artifactId>
-                <version>3.2.3</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -111,15 +111,15 @@
                                     <executable>gcc</executable>
                                     <arguments>
                                         <arg>-Wall</arg>
-                                        <arg>-Werror</arg>
+                                        <!--<arg>-Werror</arg>-->
                                         <arg>-g</arg>
                                         <arg>-I${java.home}/../include</arg>
                                         <arg>-I${java.home}/../include/darwin</arg>
                                         <arg>-I${project.build.directory}/nar/javah-include</arg>
-                                        <arg>-o${project.build.directory}/libjti.dylib</arg>
+                                        <arg>-o${project.build.directory}/libjti_field_modify.dylib</arg>
                                         <arg>-lpthread</arg>
                                         <arg>-dynamiclib</arg>
-                                        <arg>${project.basedir}/src/main/c/jti.c</arg>
+                                        <arg>${project.basedir}/src/main/c/jti_field_modify.c</arg>
                                     </arguments>
                                 </configuration>
                             </execution>
