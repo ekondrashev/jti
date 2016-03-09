@@ -6,3 +6,7 @@ target/
 /bin
 output-file
 src/main/c/output-file.dSYM/
+*~
+.classpath
+.project
+.settings/

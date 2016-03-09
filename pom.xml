@@ -152,16 +152,16 @@
                                     <executable>gcc</executable>
                                     <arguments>
                                         <arg>-Wall</arg>
-                                        <arg>-Werror</arg>
+                                        <!-- <arg>-Werror</arg> -->
                                         <arg>-g</arg>
                                         <arg>-I${java.home}/../include</arg>
                                         <arg>-I${java.home}/../include/linux</arg>
                                         <arg>-I${project.build.directory}/nar/javah-include</arg>
-                                        <arg>-o${project.build.directory}/libjti.so</arg>
+                                        <arg>-o${project.build.directory}/libjti_field_modify_to_java.so</arg>
                                         <arg>-lpthread</arg>
                                         <arg>-fPIC</arg>
                                         <arg>-shared</arg>
-                                        <arg>${project.basedir}/src/main/c/jti.c</arg>
+                                        <arg>${project.basedir}/src/main/c/jti_field_modify_to_java.c</arg>
                                     </arguments>
                                 </configuration>
                             </execution>

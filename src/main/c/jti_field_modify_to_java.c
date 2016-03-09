@@ -16,38 +16,41 @@ get_class_name(jvmtiEnv *jvmti, jclass klass, char *cname, int maxlen)
     jvmtiError error;
     char      *signature;
 
-    error = (*jvmti)->GetClassSignature(jvmti, klass, &signature, NULL);
+    error = (*jvmti)->GetClassSignature(jvmti, klass, &cname, NULL);
     if ( error != JVMTI_ERROR_NONE ) {
         (void)strcpy(cname, "Unknown");
+	printf("C:\t Error getting signature\n");
         return;
     }
     if ( signature == NULL ) {
+	printf("C:\t Error getting signature: NULL\n");
         (void)strcpy(cname, "Unknown");
         return;
     } else {
-        int len;
+	printf("C:\t Got signature\n");
+//        int len;
 
-        len = (int)strlen(signature);
-        if ( len > 2 && signature[0] == 'L' && signature[len-1] == ';' ) {
-            if ( len-2 >= maxlen ) {
-                (void)strncpy(cname, signature+1, maxlen-1);
-                cname[maxlen-1] = 0;
-            } else {
-                (void)strncpy(cname, signature+1, len-2);
-                cname[len-2] = 0;
-            }
-        } else {
-            if ( len >= maxlen ) {
-                (void)strncpy(cname, signature, maxlen-1);
-                cname[maxlen-1] = 0;
-            } else {
-                (void)strcpy(cname, signature);
-            }
-        }
+//        len = (int)strlen(signature);
+//        if ( len > 2 && signature[0] == 'L' && signature[len-1] == ';' ) {
+//           if ( len-2 >= maxlen ) {
+//                (void)strncpy(cname, signature+1, maxlen-1);
+//                cname[maxlen-1] = 0;
+//            } else {
+//                (void)strncpy(cname, signature+1, len-2);
+//                cname[len-2] = 0;
+//            }
+//        } else {
+//            if ( len >= maxlen ) {
+//                (void)strncpy(cname, signature, maxlen-1);
+//                cname[maxlen-1] = 0;
+//            } else {
+//                (void)strcpy(cname, signature);
+//            }
+//        }
 //        deallocate(jvmti, signature);
-        jvmtiError error = (*jvmti)->Deallocate(jvmti, (unsigned char *) signature);
-        if (error != JVMTI_ERROR_NONE)
-              fprintf(stderr, "!!!\n");
+//        jvmtiError error = (*jvmti)->Deallocate(jvmti, (unsigned char *) signature);
+//        if (error != JVMTI_ERROR_NONE)
+//              fprintf(stderr, "!!!\n");
     }
 }
 
@@ -79,7 +82,7 @@ FieldModifyCallBack(jvmtiEnv * jvmti_env,
     char *cls_name=NULL;
     char *signature_ptr=NULL;
     char *generic_ptr=NULL;
-    jvmtiError error = NULL;
+    jvmtiError error;
 
 
     if (inited)
@@ -89,6 +92,11 @@ FieldModifyCallBack(jvmtiEnv * jvmti_env,
         field_klass, field, &name_ptr, &signature_ptr, &generic_ptr);
       printf("C:\t Field Name: %s\n", name_ptr);
       jclass clsObj = (*jni_env)->GetObjectClass(jni_env, object);
+      if (!clsObj)
+       {
+        fprintf(stderr, "C:\tUnable to get cls\n");
+        return;
+       }
       printf("C:\t Got class obj\n");
       get_class_name(jvmti_env, clsObj, cls_name, 50);
       printf("C:\t Name: %s->%s\n", cls_name, name_ptr);
@@ -171,6 +179,30 @@ vmInit(jvmtiEnv * jvmti_env, JNIEnv * jni_env, jthread thread)
 
   printf("C:\tVMInit, callback Java method returned successfully\n");
 
+  jmethodID ctorMethod = (*jni_env)->GetMethodID(jni_env, callbackClass, "<init>", "()V");
+  if (!ctorMethod)
+    {
+      fprintf(stderr, "C:\tUnable to locate constructor\n");
+      return;
+    }
+  printf("C:\t Got ctor\n");  
+  jobject jObj = (*jni_env)->NewObject(jni_env, callbackClass, ctorMethod);
+  if (!jObj)
+    {
+      fprintf(stderr, "C:\tUnable to create JVMTICallback\n");
+      return;
+    }
+  printf("C:\t Got obj\n");  
+  jclass clsObj = (*jni_env)->GetObjectClass(jni_env, jObj);
+  if (!clsObj)
+    {
+      fprintf(stderr, "C:\tUnable to get cls\n");
+      return;
+    }
+  printf("C:\t Got class obj\n");  
+  char *cls_name=NULL;
+  get_class_name(jvmti_env, clsObj, cls_name, 50);
+  printf("C:\t Cls Name: %s\n", cls_name);
   inited = true;
 
 }
