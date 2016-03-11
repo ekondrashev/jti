@@ -1,7 +1,12 @@
+//java -agentlib:ref_paths=classname="ek/JVMTICallback",max=40 -jar target/jvmti_to_java_example-1.0-SNAPSHOT-jar-with-dependencies.jar
+//https://blogs.oracle.com/poonam/entry/jvmti_agent_to_print_reference
+
 #include <jni.h>
-#include <jvmti.h>
+#include "jvmti.h"
 #include <string.h>
 #include <stdio.h>
+#include "stddef.h"
+#include <cstdlib>
 /* ------------------------------------------------------------------- */
 /* Some
  * constant
@@ -36,6 +41,7 @@ typedef struct {
 } GlobalAgentData;
 
 static GlobalAgentData *gdata;
+
 typedef struct Referrer {
 	jlong tag;
 	jlong refereeTag;
@@ -53,13 +59,13 @@ struct ObjectInfo {
 };
 
 typedef struct ObjectInfoList {
-	ObjectInfo *obj;
+	struct ObjectInfo *obj;
 	struct ObjectInfoList *next;
 } ObjectInfoList;
 
 ObjectInfoList *objList = NULL;
 typedef struct RefPaths {
-	ObjectInfo *path;
+	struct ObjectInfo *path;
 	struct RefPaths *next;
 } RefPaths;
 static RefPaths *ref_paths;
@@ -161,13 +167,12 @@ static jvmtiIterationControl JNICALL
 object_ref_callback(jvmtiObjectReferenceKind reference_kind, jlong class_tag,
 		jlong size, jlong * tag_ptr, jlong referrer_tag, jint referrer_index,
 		void *user_data) {
-	ObjectInfo *obj_info = NULL;	// if this object's tag is set if
-	(*tag_ptr != NULL)
+	ObjectInfo *obj_info = NULL;	// if this object's tag is set
+	if (*tag_ptr != NULL)
 	{
 		if (gdata->klassTag == 1) {
 			if (*tag_ptr == gdata->klassTag) {
-				obj_info = new
-				ObjectInfo();
+				obj_info = new ObjectInfo();
 				memset(obj_info, 0, sizeof(ObjectInfo));
 				obj_info->size = size;
 				obj_info->visited = 1;
@@ -234,8 +239,8 @@ JNICALL heap_object_callback(jlong class_tag, jlong size, jlong* tag_ptr,
 	ObjectInfo* obj_info = new
 	ObjectInfo();
 	memset(obj_info, 0, sizeof(ObjectInfo));
-	obj_info->size = size; //
-	obj_info->kind = reference_kind; //Add the new ObjectInfo to ObjectInfo's list
+	obj_info->size = size; //obj_info->kind = reference_kind;
+	//Add the new ObjectInfo to ObjectInfo's list
 	if (objList == NULL) {
 		objList = new
 		ObjectInfoList();
@@ -336,8 +341,8 @@ void dfsPrintRefPaths(ObjectInfo* object) {
 				list = list->next;
 			}
 		}
-	} //
-	deletelastobject(parentlist);
+	}
+	//deletelastobject(parentlist);
 	ObjectInfoList* list = parentList;
 	ObjectInfoList* prevNode = NULL;
 	while (list->next != NULL) {
@@ -373,13 +378,13 @@ dataDumpRequest(jvmtiEnv *jvmti) {
 				dfsPrintRefPaths(object);
 				list = list->next;
 				max--;
-			} //unset
-			tags jvmti
-			->IterateOverReachableObjects(&heap_root_callback,
+			}
+			//unset tags
+			jvmti->IterateOverReachableObjects(&heap_root_callback,
 					&stack_ref_callback,
 					&object_ref_clean_callback,
-					user_data); //delete object
-			info list
+					user_data);
+			//delete objectinfo list
 			ObjectInfoList* list1 = objList;
 			while (list1) {
 				ObjectInfoList* node = list1;
@@ -388,8 +393,8 @@ dataDumpRequest(jvmtiEnv *jvmti) {
 				delete(node);
 			}
 			objList = NULL;
-			//delete ref paths list list =
-			ref_paths;
+			//delete ref paths list
+			list = ref_paths;
 			RefPaths* path;
 			while (list != NULL) {
 				path = list;
@@ -406,10 +411,8 @@ dataDumpRequest(jvmtiEnv *jvmti) {
 // VM Death callback static
 void JNICALL
 callbackVMDeath(jvmtiEnv *jvmti_env, JNIEnv* jni_env) {
-	jvmtiError err; /// Make sure
-	everything has
-	been garbage
-	collected err = jvmti->ForceGarbageCollection();
+	jvmtiError err; /// Make sure everything has been garbage collected
+	err = jvmti->ForceGarbageCollection();
 	check_jvmti_error(jvmti, err, "Forced garbage collectionfailed");
 	enter_critical_section(jvmti);
 	{
