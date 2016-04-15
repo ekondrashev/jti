@@ -1,0 +1,1 @@
+gcc -Wall -fpermissive -g -I$JAVA_HOME/include -I$JAVA_HOME/include/darwin -otarget/libhd_on_fnfe_agent.dylib -lpthread -dynamiclib src/main/c/hd_on_fnfe_agent.c && java -agentpath:./target/libhd_on_fnfe_agent.dylib="Ljava/io/FileNotFoundException;" -cp ./target/classes ek.Main
