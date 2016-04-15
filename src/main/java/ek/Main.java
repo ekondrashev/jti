@@ -10,8 +10,7 @@ public class Main {
 		Main m = new Main();
 		m.i = 1;
 		System.out.println(m.i);
-		Thread.sleep(60000);
-		throw new FileNotFoundException();
+		throw new FileNotFoundException("Resource already exists on disk: '/Tinder4MemesService/bin/.settings/org.eclipse.jdt.core.prefs'");
 	}
 
 }
