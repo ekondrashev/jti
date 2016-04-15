@@ -1,0 +1,1 @@
+gcc -Wall -g -I$JAVA_HOME/include -I$JAVA_HOME/include/linux -otarget/libhd_on_fnfe_agent.so -lpthread -fPIC -shared src/main/c/hd_on_fnfe_agent.c && java -agentpath:./target/libhd_on_fnfe_agent.so="Ljava/io/FileNotFoundException;|asd" -cp ./target/classes ek.Main
