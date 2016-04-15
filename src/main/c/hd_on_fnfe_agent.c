@@ -3,10 +3,12 @@
 #include <jvmti.h>
 #include <string.h>
 #include <stdio.h>
-#include "jmm.h"
+#include <unistd.h>
+#include <stdlib.h>
 
 JNIEXPORT void* JNICALL JVM_GetManagement(jint version);
 jvmtiEnv* jvmti;
+char* signature;
 
 void JNICALL
 Exception(jvmtiEnv *jvmti_env,
@@ -19,29 +21,43 @@ Exception(jvmtiEnv *jvmti_env,
             jlocation catch_location) {
     char *exception_signature;
 
-    /* Obtain signature of the exception and compare type name with FNFE */
     jclass class = (*jni_env)->GetObjectClass(jni_env, exception);
     (*jvmti)->GetClassSignature(jvmti_env, class, &exception_signature, NULL);
-    if (strcmp("Ljava/io/FileNotFoundException;", exception_signature)==0) {
-        JmmInterface* jmm = (JmmInterface*) JVM_GetManagement(JMM_VERSION_1_0);
-        if (jmm == NULL) {
-            printf("Sorry, JMM is not supported\n");
-        } else {
-            jstring path = (*jni)->NewStringUTF(jni, "dump.hprof");
-            jmm->DumpHeap0(jni, path, JNI_TRUE);
-            printf("Heap dumped\n");
-        }   
-    }   
-}   
+    if (strcmp(signature, exception_signature)==0) {
+        printf("Got requested exception: %s\n", exception_signature);
+        printf("Process ID : %d\n", getpid());
+        char cmdline [100];
+        sprintf(cmdline, "jmap -F -dump:live,format=b,file=dump.hprof %d", getpid());
+        int status = system(cmdline);
+        printf("Done generating heap dump, status code %d\n", status);
+    }
+}
 
 JNIEXPORT jint JNICALL Agent_OnLoad(JavaVM* vm, char* options, void* reserved) {
+    signature = options;
+    printf("Options: %s\n", options);
     (*vm)->GetEnv(vm, (void**)&jvmti, JVMTI_VERSION_1_0);
-
+    jvmtiCapabilities *capa;
+    capa = calloc(1, sizeof(jvmtiCapabilities));
+    if (!capa) {
+        fprintf(stderr, "Unable to allocate memory\n");
+        return JVMTI_ERROR_OUT_OF_MEMORY;
+    }
+    capa->can_generate_exception_events = 1;
+    jint returnCode = (*jvmti)->AddCapabilities(jvmti, capa);
+    if (returnCode != JNI_OK) {
+        fprintf(
+            stderr,
+            "C:\tJVM does not have the required capabilities, d(%d)\n",
+            returnCode
+        );
+        exit(-1);
+    }
     jvmtiEventCallbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.Exception = Exception;
     (*jvmti)->SetEventCallbacks(jvmti, &callbacks, sizeof(callbacks));
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, JVMTI_EVENT_EXCEPTION, NULL)
+    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, JVMTI_EVENT_EXCEPTION, NULL);
 
-    return 0;
+    return JVMTI_ERROR_NONE;
 }
